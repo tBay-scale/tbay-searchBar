@@ -1,69 +1,87 @@
-const {Pool, Client} = require("pg");
-require('locus')
+const { Pool, Client } = require("pg");
+const faker = require("faker");
 
 const pool = new Pool({
-  user: "student",
-  host: "fec-carousel.c2zm8vul16cb.us-east-2.rds.amazonaws.com",
-  database:"fec-teabay-carousel",
-  password:"HRATX44student",
-  port:5432,
-})
+  user: "meteor",
+  host: "localhost",
+  database: "sdc_teabay",
+  port: 5432
+});
 
 const client = new Client({
-  user: "student",
-  host: "fec-carousel.c2zm8vul16cb.us-east-2.rds.amazonaws.com",
-  database:"fec-teabay-carousel",
-  password:"HRATX44student",
-  port:5432,
-})
+  user: "meteor",
+  host: "localhost",
+  database: "sdc_teabay",
+  port: 5432
+});
 
+const fakeDataGenerator = () => {
+  const productName = faker.commerce.productName();
+  const categoryId = Math.floor(Math.random() * (4 - 1 + 1)) + 1;
+  return [productName, categoryId];
+};
 
-client.connect()
-client.query('SELECT * FROM product WHERE id = 1;', (err, res) => {
-  console.log(res.rows)
-})
+client.connect();
+client.query("SELECT NOW()", (err, res) => {
+  console.log(err, res.rows);
+  // client.end();
+});
 
-function getProduct(id, callback){
-  let queryString = `SELECT * From product WHERE id = ${id};`;
-  client.query(queryString, (error, products) => {
-    console.log(products)
-    if(error){
-      callback(error)
-    }else{
-      callback(products.rows[0])
-    }
-  })
+const insertProduct = async () => {
+  const [productName, categoryId] = fakeDataGenerator();
+  const query = {
+    text: "INSERT INTO product(product_name, category) VALUES($1, $2)",
+    values: [productName, categoryId]
+  };
+  await client
+    .query(query)
+    .catch(e => console.error(`----------------${e.stack}-------------------`));
+};
 
-}
+// const loopInsert = async () => {
+//   let count = 0;
+//   while (count < 250000) {
+//     await insertProduct();
+//     count += 1;
+//   }
+//   console.log("fin");
+// };
 
-function getOptions (currentSearchInput, callback) {
-  let queryString = 
-  currentSearchInput.category_id === 0 ? 
-  `SELECT * FROM product WHERE product_name ~* '^${currentSearchInput.search}.*';`:
-  `SELECT * FROM product WHERE category = ${currentSearchInput.category_id} AND product_name ~* '^${currentSearchInput.search}.*';`;
+// for (let i = 0; i < 9; i++) {
+//   loopInsert();
+//   loopInsert();
+//   loopInsert();
+//   loopInsert();
+// }
 
-  client.query(queryString, (error, products) => {
-    if(error){
-      callback(error)
-    }else{
-      callback(products.rows)
-    }
-  })
-}
+const getProduct = async id => {
+  try {
+    const queryString = `SELECT * From product WHERE id = ${id};`;
+    const products = await client.query(queryString);
+    return products.rows[0];
+  } catch (error) {
+    return error;
+  }
+};
 
-function getCategories (callback) {
-  let queryString = "SELECT * FROM category;"
-  client.query(queryString, (error, categories) => {
-    if(error){
-      callback(error)
-    }else{
-      callback(categories.rows)
-    }
-  })
-}
+const getOptions = async currentSearchInput => {
+  const queryString =
+    currentSearchInput.category_id === 0
+      ? `SELECT * FROM product WHERE product_name ~* '^${currentSearchInput.search}.*' LIMIT 3;`
+      : `SELECT * FROM product WHERE category = ${currentSearchInput.category_id} AND product_name ~* '^${currentSearchInput.search}.*' LIMIT 3;`;
+
+  const products = await client.query(queryString);
+  return products.rows;
+};
+
+const getCategories = async () => {
+  const queryString = "SELECT * FROM category;";
+  const categories = await client.query(queryString);
+  return categories.rows;
+};
 
 module.exports = {
   getOptions,
   getCategories,
   getProduct
-}
+};

@@ -1,22 +1,26 @@
 body{
-    background-color: #f8f8f8;
+    background-color: #F8F8F8;
 }
+#search-bar-root{
+    background-color: #F8F8F8 ;
+    margin: 0 0 0 0
+} 
 
 .top-header{
     background-color: white;
-    height: 30px;
+    padding: 0 10% 0 10%;
+    width: 100%;
     font-size: 12px;
     display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr 1fr 4fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: 10% 10% 10% 10% 10% 10% 10% 10%;
+    grid-template-rows: 20px
 }
 
 .top-header p{
-    margin: auto 0 auto auto;
-    padding-right: 10%;
+    text-align: center;
+    margin: auto;
+    padding: auto;
     cursor: pointer;
-    border-style: solid;
-    border-width: 0 1px 0 0;
-    border-color: lightgray;
 }
 
 .top-header-icons {
@@ -27,6 +31,7 @@ body{
 
 
 .header-container{
+    margin: 0 10%;
     background-color: F8F8F8;
     display: grid;
     margin-top: 20px;
@@ -60,7 +65,7 @@ body{
  display: grid;
  align-content: center;
  grid-template-columns: 4fr .5fr;
- grid-template-rows: 65px 65px;
+ grid-template-rows: 50px 50px;
 }
 
 .Search-Bar {
@@ -109,6 +114,7 @@ body{
 
 .lower-header-container{
     margin-top: 10px;
+    margin: 0 10%;
     font-size: 12px;
     background-color: #f8f8f8;
     display: grid;

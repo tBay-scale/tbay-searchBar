@@ -10,7 +10,6 @@ const TopHeader = (props) => {
             <p>Daily Deals</p>
             <p>Brand Outlet</p>
             <p>Help & Contact</p>
-            <div></div>
             <p>Sell</p>
             <p>My Tbay</p>
             <FontAwesomeIcon className="top-header-icons" icon={faBell} />
