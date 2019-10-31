@@ -1,58 +1,23 @@
-const { Pool, Client } = require("pg");
-const faker = require("faker");
-
-const pool = new Pool({
-  user: "meteor",
-  host: "localhost",
-  database: "sdc_teabay",
-  port: 5432
+const mongoose = require("mongoose");
+// const host = "mongo";
+const host = "localhost";
+mongoose.connect(`mongodb://${host}:27017/products`, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 });
 
-const client = new Client({
-  user: "meteor",
-  host: "localhost",
-  database: "sdc_teabay",
-  port: 5432
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "connection error:"));
+db.once("open", function() {
+  console.log(`we're connected!`);
 });
 
-const fakeDataGenerator = () => {
-  const productName = faker.commerce.productName();
-  const categoryId = Math.floor(Math.random() * (4 - 1 + 1)) + 1;
-  return [productName, categoryId];
-};
-
-client.connect();
-client.query("SELECT NOW()", (err, res) => {
-  console.log(err, res.rows);
-  // client.end();
+const categorySchema = new mongoose.Schema({
+  category_id: Number,
+  catgeory_name: String
 });
 
-const insertProduct = async () => {
-  const [productName, categoryId] = fakeDataGenerator();
-  const query = {
-    text: "INSERT INTO product(product_name, category) VALUES($1, $2)",
-    values: [productName, categoryId]
-  };
-  await client
-    .query(query)
-    .catch(e => console.error(`----------------${e.stack}-------------------`));
-};
-
-// const loopInsert = async () => {
-//   let count = 0;
-//   while (count < 250000) {
-//     await insertProduct();
-//     count += 1;
-//   }
-//   console.log("fin");
-// };
-
-// for (let i = 0; i < 9; i++) {
-//   loopInsert();
-//   loopInsert();
-//   loopInsert();
-//   loopInsert();
-// }
+const Category = mongoose.model("Categeory", categorySchema, "category");
 
 const getProduct = async id => {
   try {
@@ -78,6 +43,14 @@ const getCategories = async () => {
   const categories = await client.query(queryString);
   return categories.rows;
 };
+
+const getTheCategories = async () => {
+  const categories = await Category.find();
+  console.log(categories);
+  return categories;
+};
+
+console.log(getTheCategories());
 
 module.exports = {
   getOptions,
