@@ -69,7 +69,6 @@ const getOptions = async currentSearchInput => {
     currentSearchInput.category_id === 0
       ? `SELECT * FROM product WHERE product_name ~* '^${currentSearchInput.search}.*' LIMIT 3;`
       : `SELECT * FROM product WHERE category = ${currentSearchInput.category_id} AND product_name ~* '^${currentSearchInput.search}.*' LIMIT 3;`;
-
   const products = await client.query(queryString);
   return products.rows;
 };

@@ -14,7 +14,7 @@ app.use(express.static(SEARCH_BAR_DIST_DIR));
 
 const withTimeout = (milsecs, promise) => {
   const timeout = new Promise((resolve, reject) =>
-    setTimeout(() => reject(`Timed out after ${milsecs} ms!`), millis)
+    setTimeout(() => reject(`Timed out after ${milsecs} ms!`), milsecs)
   );
   return Promise.race([promise, timeout]);
 };
@@ -29,12 +29,19 @@ app.get("/add", async (req, res) => {
 });
 
 app.post("/autocomplete", async (req, res) => {
+  const noResultFound = [
+    {
+      id: 0,
+      product_name: " No Results",
+      category: "0"
+    }
+  ];
   try {
     const products = await withTimeout(2000, connection.getOptions(req.body));
     // const products = await connection.getOptions(req.body);
     res.send(products);
   } catch (error) {
-    res.send(error);
+    res.send(noResultFound);
   }
 });
 
