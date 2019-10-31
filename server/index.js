@@ -1,47 +1,56 @@
-const express = require('express');
-const path = require('path')
+const express = require("express");
+const path = require("path");
 const app = express();
 const port = 3042;
-const cors = require('cors')
+const cors = require("cors");
 const connection = require("./database/db");
-const SEARCH_BAR_DIST_DIR = path.join(__dirname, '../searchbar-dist');
-const SEARCH_BAR_HTML_FILE = path.join(SEARCH_BAR_DIST_DIR, 'index.html')
-const bodyParser = require('body-parser');
-const mockResponse = {
-    foo: 'bar',
-    bar: 'foo'
-};
+const SEARCH_BAR_DIST_DIR = path.join(__dirname, "../searchbar-dist");
+const SEARCH_BAR_HTML_FILE = path.join(SEARCH_BAR_DIST_DIR, "index.html");
 
-// app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cors());
-app.use(bodyParser.json())
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(SEARCH_BAR_DIST_DIR));
 
+const withTimeout = (milsecs, promise) => {
+  const timeout = new Promise((resolve, reject) =>
+    setTimeout(() => reject(`Timed out after ${milsecs} ms!`), millis)
+  );
+  return Promise.race([promise, timeout]);
+};
 
-app.get('/', (req, res) =>{
-    res.send(SEARCH_BAR_HTML_FILE);
+app.get("/add", async (req, res) => {
+  try {
+    const product = await connection.getProduct(req.query.id);
+    res.send(product);
+  } catch (error) {
+    res.send(error);
+  }
 });
 
-app.get('/add', (req, res) => {
-    connection.getProduct(req.query.id, (error, Product) => {
-        if(error) {
-            res.send(error)
-        }else{
-            res.send(Product)
-        }
-    })
-})
+app.post("/autocomplete", async (req, res) => {
+  try {
+    const products = await withTimeout(2000, connection.getOptions(req.body));
+    // const products = await connection.getOptions(req.body);
+    res.send(products);
+  } catch (error) {
+    res.send(error);
+  }
+});
 
-app.post('/autocomplete', (req, res) => {
-    connection.getOptions(req.body, (products) => {
-        res.send(products)
-    })
-})
+app.get("/categories", async (req, res) => {
+  try {
+    const categories = await connection.getCategories();
+    res.send(categories);
+  } catch (error) {
+    res.send(error);
+  }
+});
 
-app.get('/categories', (req, res) =>
-    connection.getCategories((categories) => {
-        res.send(categories)
-    }))
-app.listen(port, function () {
-    console.log('App listening on port: ' + port);
+app.get("/", (req, res) => {
+  res.send(SEARCH_BAR_HTML_FILE);
+});
+
+app.listen(port, function() {
+  console.log("App listening on port: " + port);
 });
