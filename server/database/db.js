@@ -13,44 +13,59 @@ db.once("open", function() {
 });
 
 const categorySchema = new mongoose.Schema({
+  id: Number,
+  product_name: String,
+  category: Number
+});
+
+const productSchema = new mongoose.Schema({
   category_id: Number,
   catgeory_name: String
 });
 
 const Category = mongoose.model("Categeory", categorySchema, "category");
+const Products = mongoose.model("Product", productSchema, "product");
 
 const getProduct = async id => {
   try {
-    const queryString = `SELECT * From product WHERE id = ${id};`;
-    const products = await client.query(queryString);
-    return products.rows[0];
+    const products = await Products.findOne({ _id: id });
+    return products;
   } catch (error) {
     return error;
   }
 };
 
 const getOptions = async currentSearchInput => {
-  const queryString =
-    currentSearchInput.category_id === 0
-      ? `SELECT * FROM product WHERE product_name ~* '^${currentSearchInput.search}.*' LIMIT 3;`
-      : `SELECT * FROM product WHERE category = ${currentSearchInput.category_id} AND product_name ~* '^${currentSearchInput.search}.*' LIMIT 3;`;
-  const products = await client.query(queryString);
-  return products.rows;
+  const searchterm = currentSearchInput.search;
+  const categoryId = currentSearchInput.category_id;
+  if (categoryId === 0) {
+    const products = await Products.find({
+      product_name: { $regex: `^${searchterm}`, $options: "im" }
+    })
+      .select("-_id")
+      .limit(3)
+      .catch(error => {
+        return `error of , ${error}`;
+      });
+    return products;
+  } else {
+    const products = await Products.find({
+      category: categoryId,
+      product_name: { $regex: `${searchterm}`, $options: "im" }
+    })
+      .select("-_id")
+      .limit(3)
+      .catch(error => {
+        return `error of , ${error}`;
+      });
+    return products;
+  }
 };
 
 const getCategories = async () => {
-  const queryString = "SELECT * FROM category;";
-  const categories = await client.query(queryString);
-  return categories.rows;
-};
-
-const getTheCategories = async () => {
-  const categories = await Category.find();
-  console.log(categories);
+  const categories = await Category.find().select("-_id");
   return categories;
 };
-
-console.log(getTheCategories());
 
 module.exports = {
   getOptions,
